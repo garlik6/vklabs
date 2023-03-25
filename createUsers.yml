@@ -1,0 +1,77 @@
+- name: Create users
+  hosts: home
+  become: true
+
+  vars:
+    users:
+      - name: d.alexeev
+        password: d.alexeev
+        ssh_key: "{{ lookup('file', '~/.ssh/d.alexeev.pub') }}"
+      - name: s.ivannikov
+        password: s.ivannikov
+        ssh_key: "{{ lookup('file', '~/.ssh/s.ivannikov.pub') }}"
+
+  tasks:
+    - name: Make sure we have a 'wheel' group
+      group:
+        name: wheel
+        state: present
+
+    - name: Allow 'wheel' group to have passwordless sudo
+      lineinfile:
+        dest: /etc/sudoers
+        state: present
+        regexp: '^%wheel'
+        line: '%wheel ALL=(ALL) ALL'
+        validate: 'visudo -cf %s'
+
+    - name: Create users
+      user:
+        name: "{{ item.name }}"
+        password: "{{ item.password | password_hash('sha512')}}"
+        shell: /bin/bash
+        createhome: yes
+        groups: wheel
+        append: yes
+        state: present
+      loop: "{{ users }}"
+
+    - name: Add SSH keys
+      authorized_key:
+        user: "{{ item.name }}"
+        key: "{{ item.ssh_key }}"
+        state: present
+      loop: "{{ users }}"
+
+    - name: Disable root authentication
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        state: present
+        regexp: '^#?PermitRootLogin'
+        line: 'PermitRootLogin no'
+
+    - name: disable ChallengeResponseAuthentication
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        state: present
+        regexp: '^#?ChallengeResponseAuthentication'
+        line: 'ChallengeResponseAuthentication no'
+        
+    - name: disable PasswordAuthentication
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        state: present
+        regexp: '^#?PasswordAuthentication'
+        line: 'PasswordAuthentication no'
+
+    - name: disable PasswordAuthentication
+      lineinfile:
+        path: /etc/ssh/sshd_config.d/50-cloud-init.conf
+        state: present
+        regexp: '^#?PasswordAuthentication'
+        line: 'PasswordAuthentication no'
+
+    - name: restart sshd service
+      service:
+        name: sshd
+        state: restarted

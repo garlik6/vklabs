@@ -33,9 +33,7 @@
       ignore_errors: true
       apt:
         deb: "{{ item.path }}"
-        update_cache: yes
         state: present
-        dpkg_options: "--force-confnew"
       with_items: "{{ deb_files.files }}"
 
     - name: Check if packages are installed

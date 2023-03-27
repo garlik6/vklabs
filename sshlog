@@ -24,6 +24,6 @@ ssh -t -i $SSH_KEY $USER@$HOST "\
 (
 # Find and delete all files that are +7 days old
 cd /var/log/$USER
-echo $(find . -name '*.log' -type f -mmin +3) 
+echo $(find . -name '*.log' -type f -mtime +7) 
 find . -name '*.log' -type f -mtime +7 -delete
 ) 2>&1"

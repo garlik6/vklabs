@@ -1,0 +1,1 @@
+/home/grigory/scripts/sshlog

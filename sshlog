@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Define remote machine SSH credintials
+
+USER="admini"
+HOST="192.168.1.63"
+SSH_KEY="~/.ssh/id_rsa"
+
+# Function to create a file and add text to it
+function create_file {
+  filename=$1
+  text="$2"
+  # Connect to the remote machine via SSH and create the file
+  ssh -i $SSH_KEY $USER@$HOST "touch /var/log/$USER/$filename"
+
+  # Send the text to the remote machine via SSH and append it to the file
+  echo "$text" | ssh -i $SSH_KEY $USER@$HOST "cat >> /var/log/$USER/$filename"
+}
+
+create_file new_file_$(date +%Y-%m-%d_%H:%M:%S).log "$(free)"
+
+# Connect to a remote machine via ssh
+ssh -t -i $SSH_KEY $USER@$HOST "\
+(
+# Find and delete all files that are +3 minutes old
+cd /var/log/$USER
+echo $(find . -name '*.log' -type f -mmin +3) 
+find . -name '*.log' -type f -mmin +3 -delete
+) 2>&1"
+

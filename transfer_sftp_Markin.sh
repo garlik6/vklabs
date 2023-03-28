@@ -16,7 +16,7 @@ REMOTE_DIR="/home/$REMOTE_USER/logs" # create logs dir on remote server
 # loop for create log files
 for i in $(seq 1 $NUM_FILES); do
     FILENAME=$LOCAL_DIR/"logfile_$i"$(date +"_%Y-%m-%d-%H:%M:%S").log
-    echo "VK SRE log file number $i %H:%M:%S" >> "$FILENAME"
+    echo "VK SRE log file number $i $(date +"%H:%M:%S")" >> "$FILENAME"
     
     # Transfer files to remote server using SFTP
     sftp -i $PATH_TO_SSH "$REMOTE_USER@$REMOTE_HOST:$REMOTE_DIR" <<EOF
